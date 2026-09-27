@@ -426,7 +426,6 @@ ScrollTrigger.create({
     if(btnAccept) {
         btnAccept.addEventListener('click', () => {
             // Optional: Give a quick terminal feedback effect before navigating
-            alert("> TEMPORAL CLEARANCE GRANTED. Opening Variant Intake Manifest...");
             window.open("https://form.jotform.com/262695128449065", "_blank");
         });
     }
