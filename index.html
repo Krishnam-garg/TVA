@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!-- 1. TAILWIND CSS CDN (This fixes the layout and colors) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Cinzel:wght@700&family=Creepster&family=Pacifico&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Cinzel:wght@700&family=Orbitron:wght@700&family=Oswald:wght@500;700&family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet">
+    <!-- Custom Fonts (Optional but highly recommended for the TVA look) -->
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=VT323&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
+    
+    <style>
+        html {
+    /* Hides scrollbar for Chrome, Safari, and Opera */
+    &::-webkit-scrollbar {
+        display: none;
+    }
+    
+    /* Hides scrollbar for Firefox */
+    scrollbar-width: none;
+    
+    /* Hides scrollbar for IE and Edge */
+    -ms-overflow-style: none; 
+}
+html,
+body {
+    cursor: none;
+}
+
+/* Hide the normal cursor on interactive elements too */
+a,
+button,
+.cursor-pointer,
+input,
+textarea,
+select {
+    cursor: none !important;
+}
+#custom-cursor {
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    width: 24px;
+    height: 24px;
+
+    pointer-events: none;
+    z-index: 99999;
+
+    background: url("red_orange_pixel.png") center / contain no-repeat;
+
+    filter:
+        drop-shadow(0 0 3px rgba(255, 90, 0, 1))
+        drop-shadow(0 0 8px rgba(255, 0, 0, 0.25));
+
+    will-change: transform;
+}
+        /* TVA Retro Text Glow */
+.tva-glow {
+    text-shadow: 0 0 5px rgba(255, 90, 0, 0.8), 0 0 15px rgba(255, 90, 0, 0.4);
+}
+.tva-box-glow {
+    box-shadow: 0 0 10px rgba(255, 90, 0, 0.3), inset 0 0 20px rgba(255, 90, 0, 0.1);
+}
+
+@keyframes crt-glitch {
+    /* 0% to 80%: Screen is completely stable and normal */
+    0%, 80% { opacity: 1; filter: brightness(1); }
+    
+    /* A quick static blip around 82% */
+    82% { opacity: 0.4; filter: brightness(1.8) contrast(150%); } 
+    84% { opacity: 1; filter: brightness(1); }
+    
+    /* A quick blackout frame around 90% */
+    90% { opacity: 0.2; } 
+    92% { opacity: 1; filter: brightness(1); }
+    
+    /* 95% to 100%: Stable again */
+    95%, 100% { opacity: 1; filter: brightness(1); }
+
+
+}
+
+.animate-flicker {
+    /* Total duration for one full cycle. 
+       Set this higher (like 6s or 8s) for even more space between glitches! */
+    animation: crt-glitch 3s infinite;
+}
+
+/* The Scanline Overlay */
+.scanlines {
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    background-size: 100% 4px, 3px 100%;
+}
+/* Angular, Brutalist & Tech Fonts for the Glitch */
+/* Fixed-width wrapper keeps characters from jumping around horizontally */
+.loki-container {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 1.1em; 
+    text-align: center;
+}
+
+/* Base class for the glitching letters */
+.loki-char {
+    display: inline-block;
+    color: #ffffff;
+}
+@keyframes scan {
+    0% { top: -10%; }
+    100% { top: 110%; }
+}
+
+</style>
+</head>
+
+<body>
+<body>
+
+<!-- CUSTOM TVA CURSOR -->
+<div id="custom-cursor"></div>
+
+<!-- ========================================================= -->
+<!-- THE TVA PRELOADER (BOOT SEQUENCE)                         -->
+<!-- ========================================================= -->
+<div id="tva-preloader" class="fixed inset-0 z-[10000] bg-[#0a0603] flex flex-col items-center justify-center">
+    
+    <!-- Phase 1: The Loki Glitch Title with Fixed Width Containers -->
+    <div id="glitch-title" class="flex text-7xl md:text-9xl text-white tracking-widest gap-2 md:gap-4">
+        <span class="loki-container"><span class="loki-char">G</span></span>
+        <span class="loki-container"><span class="loki-char">F</span></span>
+        <span class="loki-container"><span class="loki-char">G</span></span>
+        <span class="loki-container ml-4 md:ml-8"><span class="loki-char">B</span></span>
+        <span class="loki-container"><span class="loki-char">U</span></span>
+    </div>
+    
+    <!-- Phase 2: The Terminal Boot -->
+    <div id="boot-sequence" class="hidden mt-12 font-mono text-[#FF5A00] text-xl md:text-3xl tva-glow text-center">
+        <span id="boot-text"></span><span class="inline-block w-3 h-6 md:w-4 md:h-8 bg-[#FF5A00] animate-pulse ml-1 align-bottom shadow-[0_0_10px_#FF5A00]"></span>
+    </div>
+</div>
+<!-- GLOBAL TVA BACKGROUND & CRT EFFECTS (STAYS FIXED) -->
+<div class="fixed inset-0 z-[-2] bg-[#0a0603]"></div>
+<div class="fixed inset-0 z-[-1]">
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#1a0f05] to-[#0a0603] opacity-80"></div>
+    <div class="absolute inset-0 opacity-10" style="background-image: linear-gradient(#FF5A00 1px, transparent 1px), linear-gradient(90deg, #FF5A00 1px, transparent 1px); background-size: 50px 50px;"></div>
+</div>
+<!-- Bumped z-index to 20000 to cover modals and preloaders -->
+<div class="pointer-events-none fixed inset-0 z-[20000] scanlines opacity-60"></div>
+<div class="pointer-events-none fixed inset-0 z-[19999] shadow-[inset_0_0_120px_rgba(0,0,0,0.9)]"></div>
+
+<!-- ========================================================= -->
+<!-- TVA MISS MINUTES BRIEFING SECTION (RETRO TECH)            -->
+<!-- ========================================================= -->
+<section id="variant-briefing" class="relative w-full h-[400vh] text-[#FF5A00] animate-flicker">    
+    <!-- THE STICKY CONTAINER -->
+    <div class="sticky top-0 left-0 w-full h-screen flex flex-col md:flex-row items-center justify-center p-8 ">
+        
+        <!-- Bureaucratic Background Accents -->
+        <div class="absolute inset-0 z-0 pointer-events-none flex flex-col justify-between p-8 opacity-40 font-mono text-sm tracking-[0.2em] tva-glow">
+            <span class="border-b border-[#FF5A00] pb-1 w-max">TEMPAD OS v.7.4 // GFG-BU</span>
+            <span class="text-right border-t border-[#FF5A00] pt-1 w-max self-end">STATUS: MONITORING ANOMALIES</span>
+        </div>
+
+        <!-- Miss Minutes Character -->
+        <div class="relative z-10 flex-shrink-0 w-64 h-64 md:w-96 md:h-96 transform transition-transform duration-300 drop-shadow-[0_0_25px_rgba(255,90,0,0.6)]">
+            <img id="mm-sprite" 
+                 src="https://placehold.co/400x400/FF5A00/000000?text=Miss+Minutes" 
+                 alt="Miss Minutes" 
+                 class="w-full h-full object-contain mix-blend-screen">
+        </div>
+
+        <!-- The Dialogue Terminal (Replaces the comic bubble) -->
+        <div class="relative z-20 mt-8 md:mt-0 md:ml-12 max-w-2xl w-full">
+            
+            <div class="bg-[#0f0702]/80 backdrop-blur-sm border border-[#FF5A00] p-8 md:p-10 tva-box-glow relative">
+                
+                <!-- Terminal Header Bar -->
+                <div class="absolute top-0 left-0 w-full bg-[#FF5A00] text-[#0a0603] text-xs font-mono px-3 py-1 font-bold flex justify-between items-center">
+                    <span>> INCOMING_TRANSMISSION</span>
+                    <span class="animate-pulse">REC◉</span>
+                </div>
+
+                <!-- Text Container -->
+                <h2 id="mm-dialogue" class="text-2xl md:text-4xl font-mono text-[#FF5A00] mt-6 leading-relaxed tracking-tight tva-glow">
+                    "Hey y'all! Welcome to the Techno Venture Arena!"
+                </h2>
+                
+                <!-- Blinking Cursor -->
+                <span class="inline-block w-4 h-8 bg-[#FF5A00] animate-pulse ml-2 mt-2 shadow-[0_0_10px_#FF5A00]"></span>
+            </div>
+            
+            <!-- Terminal decorative brackets -->
+            <div class="absolute -bottom-2 -right-2 w-4 h-4 border-b-2 border-r-2 border-[#FF5A00]"></div>
+            <div class="absolute -top-2 -left-2 w-4 h-4 border-t-2 border-l-2 border-[#FF5A00] mt-[32px]"></div>
+        </div>
+    </div>
+
+    <!-- THE SCROLL TRIGGERS -->
+    <div class="absolute top-0 left-0 w-full h-full pointer-events-none z-40 flex flex-col">
+        <div id="trigger-1" class="h-screen w-full"></div>
+        <div id="trigger-2" class="h-screen w-full"></div>
+        <div id="trigger-3" class="h-screen w-full"></div>
+        <div id="trigger-4" class="h-screen w-full"></div>
+        <div id="trigger-5" class="h-screen w-full"></div>
+
+    </div>
+</section>
+
+
+<!-- ========================================================= -->
+<!-- SACRED TIMELINE (EVENT SCHEDULE WITH INTERACTIVE TEMPAD)   -->
+<!-- ========================================================= -->
+<section id="horizontal-timeline" class="relative w-full h-screen overflow-hidden animate-flicker">    
+    
+    <!-- The "Void" Overlay -->
+    <div class="absolute inset-y-0 right-0 w-[25vw] bg-gradient-to-l from-[#0a0603] via-[#0a0603]/80 to-transparent z-40 pointer-events-none"></div>
+
+    <!-- Extra UI: System Status -->
+    <div class="absolute top-8 left-8 z-20 font-mono text-[#FF5A00] text-sm tracking-widest tva-glow opacity-80 flex flex-col gap-2">
+        <span>> SACRED_TIMELINE_MONITORING</span>
+        <span class="text-xs opacity-70">TEMPORAL LOOM INTEGRITY: <span class="animate-pulse text-[#4AF626]">98.7%</span></span>
+    </div>
+    <div class="absolute bottom-8 right-12 z-50 font-mono text-[#FF5A00] text-xs tracking-widest opacity-50 tva-glow">
+        WARN: MULTIPLE NEXUS EVENTS DETECTED
+    </div>
+
+    <!-- The Horizontal Scroll Container -->
+    <div id="timeline-track" class="relative w-max h-full flex items-center">
+        
+        <!-- THE MAIN TRUNK (Glowing White) -->
+        <div class="absolute left-0 right-0 h-[3px] bg-white shadow-[0_0_20px_5px_rgba(255,255,255,0.7)] z-10 flex items-center">
+            <div class="w-full flex justify-around opacity-30">
+                <div class="h-4 w-[2px] bg-white"></div>
+                <div class="h-4 w-[2px] bg-white"></div>
+                <div class="h-4 w-[2px] bg-white"></div>
+                <div class="h-4 w-[2px] bg-white"></div>
+                <div class="h-4 w-[2px] bg-white"></div>
+                <div class="h-4 w-[2px] bg-white"></div>
+            </div>
+        </div>
+        
+        <!-- Entry Padding -->
+        <div class="w-[50vw] md:w-[30vw] flex-shrink-0"></div>
+
+        <!-- NEXUS EVENT 1: BRANCHING UP -->
+        <div class="relative w-[85vw] md:w-[600px] flex-shrink-0 h-full timeline-node">
+            <div class="absolute left-0 top-1/2 -translate-y-1/2 w-5 h-5 bg-white rounded-full shadow-[0_0_25px_rgba(255,255,255,1)] z-30"></div>
+            
+            <div class="branch-wrapper absolute left-2 bottom-1/2 w-[60vw] md:w-[350px] h-[220px] z-20">
+                <div class="absolute bottom-0 left-0 w-full h-full border-l-4 border-t-4 border-[#FF5A00] rounded-tl-full shadow-[-5px_-5px_15px_rgba(255,90,0,0.5)]"></div>
+                <div class="absolute top-[-6px] right-0 w-4 h-4 bg-[#FF5A00] rounded-full shadow-[0_0_15px_#FF5A00] animate-pulse"></div>
+            </div>
+            
+            <div class="event-card absolute bottom-[calc(50%+230px)] left-[1.5rem] md:left-[3rem] w-[calc(100%-3rem)] md:w-[450px] p-2 pr-6 cursor-pointer group transition-transform duration-300 hover:scale-105"
+                 data-title="Project Insight" 
+                 data-time="NEXUS: 001 // 09:00 AM" 
+                 data-desc="Code with lethal precision against Arnim Zola. In this phase, Variants will be tasked with architecting the foundational logic and algorithms required to bypass Zola's encrypted mainframe. Failure to optimize your code will result in immediate pruning.">
+                
+                <div class="absolute inset-0 bg-[#FF5A00]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none border border-[#FF5A00]/30 shadow-[0_0_15px_rgba(255,90,0,0.2)]"></div>
+                
+                <h3 class="text-3xl md:text-5xl font-mono text-[#FF5A00] tva-glow uppercase tracking-tighter">> Project Insight</h3>
+                <p class="font-mono text-[#F4F1E1] opacity-70 mt-1 tracking-widest bg-[#FF5A00]/10 w-max px-2 border border-[#FF5A00]/30">NEXUS: 001 // 09:00 AM</p>
+                <p class="font-mono text-[#FF5A00] text-sm mt-4 opacity-80 border-l-2 border-[#FF5A00] pl-3">Code with Lethal Precision, against Arnim Zola.</p>
+            </div>
+        </div>
+
+        <!-- NEXUS EVENT 2: BRANCHING DOWN -->
+        <div class="relative w-[85vw] md:w-[600px] flex-shrink-0 h-full timeline-node">
+            <div class="absolute left-0 top-1/2 -translate-y-1/2 w-5 h-5 bg-white rounded-full shadow-[0_0_25px_rgba(255,255,255,1)] z-30"></div>
+            
+            <div class="branch-wrapper absolute left-2 top-1/2 w-[60vw] md:w-[350px] h-[220px] z-20">
+                <div class="absolute top-0 left-0 w-full h-full border-l-4 border-b-4 border-[#FF5A00] rounded-bl-full shadow-[-5px_5px_15px_rgba(255,90,0,0.5)]"></div>
+                <div class="absolute bottom-[-6px] right-0 w-4 h-4 bg-[#FF5A00] rounded-full shadow-[0_0_15px_#FF5A00] animate-pulse"></div>
+            </div>
+            
+            <div class="event-card absolute top-[calc(50%+230px)] left-[1.5rem] md:left-[3rem] w-[calc(100%-3rem)] md:w-[450px] p-2 pr-6 cursor-pointer group transition-transform duration-300 hover:scale-105"
+                 data-title="Ultron's Source" 
+                 data-time="NEXUS: 002 // 13th Oct" 
+                 data-desc="Prune all BUGS. Armour around 616. A rogue AI presence has corrupted the testing environment. You must debug and patch critical vulnerabilities across the network before the Ultron protocol overwrites the Sacred Timeline.">
+                
+                <div class="absolute inset-0 bg-[#FF5A00]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none border border-[#FF5A00]/30 shadow-[0_0_15px_rgba(255,90,0,0.2)]"></div>
+                
+                <h3 class="text-3xl md:text-5xl font-mono text-[#FF5A00] tva-glow uppercase tracking-tighter">> Ultron's Source</h3>
+                <p class="font-mono text-[#F4F1E1] opacity-70 mt-1 tracking-widest bg-[#FF5A00]/10 w-max px-2 border border-[#FF5A00]/30">NEXUS: 002 // 13th Oct</p>
+                <p class="font-mono text-[#FF5A00] text-sm mt-4 opacity-80 border-l-2 border-[#FF5A00] pl-3">Prune all BUGS, form an Armour around the world.</p>
+            </div>
+        </div>
+
+        <!-- NEXUS EVENT 3: BRANCHING UP -->
+        <div class="relative w-[85vw] md:w-[600px] flex-shrink-0 h-full timeline-node">
+            <div class="absolute left-0 top-1/2 -translate-y-1/2 w-5 h-5 bg-white rounded-full shadow-[0_0_25px_rgba(255,255,255,1)] z-30"></div>
+            
+            <div class="branch-wrapper absolute left-2 bottom-1/2 w-[60vw] md:w-[350px] h-[220px] z-20">
+                <div class="absolute bottom-0 left-0 w-full h-full border-l-4 border-t-4 border-[#FF5A00] rounded-tl-full shadow-[-5px_-5px_15px_rgba(255,90,0,0.5)]"></div>
+                <div class="absolute top-[-6px] right-0 w-4 h-4 bg-[#FF5A00] rounded-full shadow-[0_0_15px_#FF5A00] animate-pulse"></div>
+            </div>
+            
+            <div class="event-card absolute bottom-[calc(50%+230px)] left-[1.5rem] md:left-[3rem] w-[calc(100%-3rem)] md:w-[450px] p-2 pr-6 cursor-pointer group transition-transform duration-300 hover:scale-105"
+                 data-title="Web-Slinger" 
+                 data-time="NEXUS: 003 // 14th Oct" 
+                 data-desc="Architect responsive Websites for the CEO. Construct dynamic, high-performance web applications that interact seamlessly with TVA backend systems. Smooth UX and flawless accessibility are mandatory.">
+                
+                <div class="absolute inset-0 bg-[#FF5A00]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none border border-[#FF5A00]/30 shadow-[0_0_15px_rgba(255,90,0,0.2)]"></div>
+                
+                <h3 class="text-3xl md:text-5xl font-mono text-[#FF5A00] tva-glow uppercase tracking-tighter">> Web-Slinger</h3>
+                <p class="font-mono text-[#F4F1E1] opacity-70 mt-1 tracking-widest bg-[#FF5A00]/10 w-max px-2 border border-[#FF5A00]/30">NEXUS: 003 // 14th Oct</p>
+                <p class="font-mono text-[#FF5A00] text-sm mt-4 opacity-80 border-l-2 border-[#FF5A00] pl-3">Architect responsive Websites for the CEO.</p>
+            </div>
+        </div>
+        
+        <!-- NEXUS EVENT 4: BRANCHING DOWN -->
+        <div class="relative w-[85vw] md:w-[600px] flex-shrink-0 h-full timeline-node">
+            <div class="absolute left-0 top-1/2 -translate-y-1/2 w-5 h-5 bg-white rounded-full shadow-[0_0_25px_rgba(255,255,255,1)] z-30"></div>
+            
+            <div class="branch-wrapper absolute left-2 top-1/2 w-[60vw] md:w-[350px] h-[220px] z-20">
+                <div class="absolute top-0 left-0 w-full h-full border-l-4 border-b-4 border-[#FF5A00] rounded-bl-full shadow-[-5px_5px_15px_rgba(255,90,0,0.5)]"></div>
+                <div class="absolute bottom-[-6px] right-0 w-4 h-4 bg-[#FF5A00] rounded-full shadow-[0_0_15px_#FF5A00] animate-pulse"></div>
+            </div>
+            
+            <div class="event-card absolute top-[calc(50%+230px)] left-[1.5rem] md:left-[3rem] w-[calc(100%-3rem)] md:w-[450px] p-2 pr-6 cursor-pointer group transition-transform duration-300 hover:scale-105"
+                 data-title="Judgment Day" 
+                 data-time="NEXUS: 004 // 15th Oct" 
+                 data-desc="The Final Reckoning of Arishem The Judge. Present your pitch and prototype to the Supreme Code-Keepers. Only projects that preserve the integrity of the Sacred Timeline will survive pruning.">
+                
+                <div class="absolute inset-0 bg-[#FF5A00]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none border border-[#FF5A00]/30 shadow-[0_0_15px_rgba(255,90,0,0.2)]"></div>
+                
+                <h3 class="text-3xl md:text-5xl font-mono text-[#FF5A00] tva-glow uppercase tracking-tighter">> Judgment Day</h3>
+                <p class="font-mono text-[#F4F1E1] opacity-70 mt-1 tracking-widest bg-[#FF5A00]/10 w-max px-2 border border-[#FF5A00]/30">NEXUS: 004 // 15th Oct</p>
+                <p class="font-mono text-[#FF5A00] text-sm mt-4 opacity-80 border-l-2 border-[#FF5A00] pl-3">The Final Reckoning of Arishem The Judge.</p>
+            </div>
+        </div>
+
+        <!-- Exit Padding -->
+        <div class="w-[50vw] md:w-[50vw] flex-shrink-0"></div>
+    </div>
+</section>
+
+<!-- ========================================================= -->
+<!-- LORE BRIDGE: MISS MINUTES CRISIS BRIEFING                 -->
+<!-- ========================================================= -->
+<section id="lore-expansion" class="relative w-full h-[300vh] text-[#FF5A00] animate-flicker">
+        <div class="sticky top-0 left-0 w-full h-screen flex flex-col md:flex-row items-center justify-center p-8 z-10">
+        
+        <!-- Miss Minutes (Crisis Mode) -->
+        <div class="relative z-10 flex-shrink-0 w-64 h-64 md:w-96 md:h-96 transform transition-transform duration-300 drop-shadow-[0_0_35px_rgba(255,0,0,0.4)]">
+            <img id="mm-sprite-2" 
+                 src="https://res.cloudinary.com/dyvlj9ews/image/upload/v1790506636/1.png" 
+                 alt="Miss Minutes" 
+                 class="w-full h-full object-contain mix-blend-screen">
+        </div>
+
+        <!-- The Dialogue Terminal -->
+        <div class="relative z-20 mt-8 md:mt-0 md:ml-12 max-w-2xl w-full">
+            <div class="bg-[#0f0702]/90 backdrop-blur-sm border-2 border-red-900/50 p-8 md:p-10 shadow-[0_0_20px_rgba(255,0,0,0.1)] relative">
+                
+                <div class="absolute top-0 left-0 w-full bg-red-900/80 text-red-100 text-xs font-mono px-3 py-1 font-bold flex justify-between items-center">
+                    <span class="animate-pulse">> URGENT_TRANSMISSION // OVERRIDE</span>
+                    <span>PRIORITY: ALPHA</span>
+                </div>
+
+                <h2 id="mm-dialogue-2" class="text-2xl md:text-4xl font-mono text-[#FF5A00] mt-6 leading-relaxed tracking-tight tva-glow">
+                    "Loading emergency protocol..."
+                </h2>
+                
+                <span class="inline-block w-4 h-8 bg-[#FF5A00] animate-pulse ml-2 mt-2 shadow-[0_0_10px_#FF5A00]"></span>
+            </div>
+            
+            <div class="absolute -bottom-2 -right-2 w-4 h-4 border-b-2 border-r-2 border-red-900/80"></div>
+            <div class="absolute -top-2 -left-2 w-4 h-4 border-t-2 border-l-2 border-red-900/80 mt-[32px]"></div>
+        </div>
+    </div>
+
+    <!-- THE SCROLL TRIGGERS -->
+    <div class="absolute top-0 left-0 w-full h-full pointer-events-none z-40 flex flex-col">
+        <div id="trigger-lore-1" class="h-screen w-full"></div>
+        <div id="trigger-lore-2" class="h-screen w-full"></div>
+        <div id="trigger-lore-3" class="h-screen w-full"></div>
+    </div>
+</section>
+
+<!-- ========================================================= -->
+<!-- THE TEMPORAL ARCHIVES (TEMPAD HOMESCREEN)                 -->
+<!-- ========================================================= -->
+<section id="hall-of-fame" class="relative w-full min-h-screen py-20 px-4 flex flex-col items-center justify-center z-10 animate-flicker">    
+    <!-- The TemPad Device Bezel -->
+    <div class="relative w-full max-w-4xl h-[600px] md:h-[700px] bg-[#0f0702] border-[6px] border-[#FF5A00] rounded-3xl p-6 md:p-10 shadow-[0_0_40px_rgba(255,90,0,0.3),inset_0_0_60px_rgba(0,0,0,0.8)] overflow-hidden">
+        
+        <!-- CRT Screen Overlay inside the TemPad -->
+        <div class="absolute inset-0 pointer-events-none scanlines opacity-50 z-0"></div>
+        <div class="absolute inset-0 pointer-events-none shadow-[inset_0_0_100px_rgba(0,0,0,0.9)] z-0"></div>
+
+        <!-- TemPad OS Header -->
+        <div class="relative z-10 flex justify-between items-end border-b-2 border-[#FF5A00] pb-3 mb-12">
+            <div>
+                <h2 class="text-[#FF5A00] font-mono text-xl md:text-3xl font-bold tracking-widest tva-glow">> TEMPAD_OS v7.4</h2>
+                <p class="text-[#F4F1E1] opacity-70 font-mono text-sm tracking-widest mt-1">DIR: /ARCHIVES/EMPLOYEES_OF_ALL_TIME</p>
+            </div>
+            <div class="text-[#4AF626] font-mono text-sm md:text-base animate-pulse font-bold tracking-widest">
+                SYSTEM ONLINE
+            </div>
+        </div>
+
+        <!-- The Desktop Folders Grid -->
+        <div class="relative z-10 flex flex-wrap justify-center gap-16 md:gap-32 mt-12 md:mt-24">
+            
+            <!-- GREEN FOLDER: LOKI -->
+            <div id="folder-loki" class="flex flex-col items-center cursor-pointer group">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-32 h-32 md:w-40 md:h-40 text-[#4AF626] group-hover:drop-shadow-[0_0_25px_#4AF626] group-hover:-translate-y-2 transition-all duration-300" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M10 4H2v16h20V6H12l-2-2z" />
+                </svg>
+                <div class="mt-4 px-2 py-1 border border-transparent group-hover:bg-[#4AF626] group-hover:text-[#0a1a0a] transition-colors duration-300">
+                    <span class="text-[#4AF626] group-hover:text-[#0a1a0a] font-mono text-center font-bold tracking-widest uppercase">Employee of All Time<br><span class="text-xs opacity-80">(L1130)</span></span>
+                </div>
+            </div>
+
+            <!-- ORANGE FOLDER: THE VARIANT -->
+            <div id="folder-variant" class="flex flex-col items-center cursor-pointer group">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-32 h-32 md:w-40 md:h-40 text-[#FF5A00] group-hover:drop-shadow-[0_0_25px_#FF5A00] group-hover:-translate-y-2 transition-all duration-300" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M10 4H2v16h20V6H12l-2-2z" />
+                </svg>
+                <div class="mt-4 px-2 py-1 border border-transparent group-hover:bg-[#FF5A00] group-hover:text-[#0a0603] transition-colors duration-300">
+                    <span class="text-[#FF5A00] group-hover:text-[#0a0603] font-mono text-center font-bold tracking-widest uppercase">He Who Remains<br><span class="text-xs opacity-80">(PENDING)</span></span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+<!-- ========================================================= -->
+<!-- THE CTA: EMERGENCY VARIANT INTAKE TERMINAL (POPUP ON SCROLL) -->
+<!-- ========================================================= -->
+<div id="cta-pin-container" class="relative w-full h-screen">
+    <section id="tva-cta" class="sticky top-0 left-0 w-full h-screen flex flex-col items-center justify-center z-10 p-4">
+        
+        <!-- Emergency Broadcast Box -->
+        <div id="cta-box" class="relative w-full max-w-4xl bg-[#0f0702] border-2 border-red-900 p-8 md:p-12 shadow-[0_0_50px_rgba(255,0,0,0.15)] opacity-0 scale-50">
+            
+            <!-- Top Bureaucratic Bar -->
+            <div class="absolute top-0 left-0 w-full bg-red-900/80 text-red-100 text-xs font-mono px-4 py-1.5 font-bold flex justify-between items-center">
+                <span class="animate-pulse">> ALERT: TEMPORAL LOOM CRITICAL OVERLOAD</span>
+                <span>DIRECTIVE // GFG-BU-2026</span>
+            </div>
+
+            <!-- Content -->
+            <div class="mt-6 text-center">
+                <p class="font-mono text-red-400 text-sm tracking-widest uppercase mb-2">Multiversal Threat Level: Red</p>
+                <h2 class="text-3xl md:text-5xl font-mono text-[#FF5A00] tva-glow uppercase tracking-tighter mb-6" style="font-family: 'Oswald', sans-serif;">
+                    Surrender Your Timeline or Save the Multiverse
+                </h2>
+                <p class="font-mono text-[#F4F1E1] opacity-80 text-sm md:text-base max-w-2xl mx-auto leading-relaxed mb-10 border-l-2 border-r-2 border-[#FF5A00]/30 px-4 py-2">
+                    Loki cannot hold the Yggdrasil branches alone. Unresolved anomalies threaten to unravel Universe-616. Step up as an engineer, patch the Sacred Timeline, and claim the title of <strong class="text-white">He Who Remains</strong> by defeating other variants. Refusal results in immediate pruning of the variant, and distruction of the Sacred Timeline. What's your glorious purpose? Are you the Geek?
+                </p>
+
+                <!-- Dual Choice Action Matrix -->
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-6">
+                    
+                    <!-- PRIMARY BUTTON: ACCEPT -->
+                    <button id="btn-accept" class="w-full sm:w-auto px-8 py-4 bg-[#FF5A00] text-[#0a0603] font-mono font-bold tracking-widest uppercase hover:bg-white hover:shadow-[0_0_25px_#FF5A00] transition-all duration-300 cursor-pointer">
+                        [ ACCEPT DIRECTIVE: REGISTER & SAVE TIMELINE ]
+                    </button>
+
+                    <!-- SECONDARY BUTTON: REFUSE (PRUNING TRAP) -->
+                    <button id="btn-refuse" class="w-full sm:w-auto px-8 py-4 bg-transparent border-2 border-red-800 text-red-500 font-mono font-bold tracking-widest uppercase hover:bg-red-950/50 hover:text-red-300 transition-all duration-300 cursor-pointer">
+                        [ REFUSE: SURRENDER TO THE VOID ]
+                    </button>
+                </div>
+            </div>
+
+            <!-- Terminal Brackets -->
+            <div class="absolute -bottom-2 -right-2 w-4 h-4 border-b-2 border-r-2 border-red-900"></div>
+            <div class="absolute -top-2 -left-2 w-4 h-4 border-t-2 border-l-2 border-red-900 mt-[32px]"></div>
+        </div>
+    </section>
+</div>
+
+
+<!-- ========================================================= -->
+<!-- PRUNED OVERLAY (MISS MINUTES PRUNING POPUP)               -->
+<!-- ========================================================= -->
+<div id="pruned-overlay" class="fixed inset-0 z-[30000] hidden items-center justify-center bg-[#0a0603]/95 backdrop-blur-md p-4">
+    <div class="relative w-full max-w-xl bg-[#0f0702] border-2 border-red-600 p-8 shadow-[0_0_50px_rgba(255,0,0,0.4)] flex flex-col items-center text-center">
+        
+        <!-- Top Status Bar -->
+        <div class="absolute top-0 left-0 w-full bg-red-900/80 text-red-100 text-xs font-mono px-4 py-1 font-bold flex justify-between items-center">
+            <span class="animate-pulse">> STATUS: VARIANT PRUNED</span>
+            <span>ALIOTH FEED PROTOCOL</span>
+        </div>
+
+        <!-- Miss Minutes Sprite -->
+        <div class="w-32 h-32 md:w-40 md:h-40 my-6 drop-shadow-[0_0_20px_rgba(255,0,0,0.5)]">
+            <img src="https://res.cloudinary.com/dyvlj9ews/image/upload/v1790506636/1.png" alt="Miss Minutes" class="w-full h-full object-contain mix-blend-screen">
+        </div>
+
+        <!-- Dialogue Text -->
+        <p class="font-mono text-[#FF5A00] text-lg md:text-xl leading-relaxed mb-6 tva-glow">
+            "Suit yourself, honey! Enjoy getting eaten by Alioth at the End of Time.<br>Returning timeline to default state..."
+        </p>
+
+        <!-- Progress Bar for Reload -->
+        <div class="w-full bg-black border border-red-600 h-3 overflow-hidden p-0.5">
+            <div id="prune-progress" class="h-full bg-red-600 w-0"></div>
+        </div>
+
+        <!-- Terminal Brackets -->
+        <div class="absolute -bottom-2 -right-2 w-4 h-4 border-b-2 border-r-2 border-red-600"></div>
+        <div class="absolute -top-2 -left-2 w-4 h-4 border-t-2 border-l-2 border-red-600 mt-[24px]"></div>
+    </div>
+</div>
+<!-- ========================================================= -->
+<!-- LOKI DOSSIER MODAL (AMBER THEME WITH GREEN ICON)          -->
+<!-- ========================================================= -->
+<div id="modal-loki" class="fixed inset-0 z-[11000] hidden items-center justify-center bg-[#0a0603]/90 backdrop-blur-md p-4">
+    <div class="relative w-full max-w-4xl bg-[#0f0702] border-2 border-[#FF5A00] p-6 md:p-10 shadow-[0_0_30px_rgba(255,90,0,0.2)] scale-90 opacity-0 flex flex-col md:flex-row gap-8" id="content-loki">
+        
+        <button class="close-dossier absolute top-4 right-4 text-[#FF5A00] hover:text-white font-mono text-xl z-20 transition-colors">[X]</button>
+
+        <!-- Left Column: Photo & Titles -->
+        <div class="w-full md:w-1/3 flex flex-col items-center border-r-0 md:border-r-2 border-[#FF5A00]/30 pr-0 md:pr-8">
+            <div class="w-full aspect-[3/4] bg-[#1a0f05] border border-[#FF5A00]/50 mb-4 relative overflow-hidden group">
+                <!-- Placeholder for Loki Photo (Amber Tinted) -->
+                <img src="https://res.cloudinary.com/dyvlj9ews/image/upload/v1790539623/dtc4720-204-comp-trx-v0004-1142-r-654b968aeb5d6.avif" alt="Loki" class="w-full h-full object-cover grayscale contrast-125 group-hover:grayscale-0 transition-all duration-500">
+            </div>
+            
+            <h3 class="font-mono text-[#FF5A00] text-2xl uppercase tracking-tighter text-center mt-2 font-bold">> L1130</h3>
+            <div class="w-full border-t border-[#FF5A00]/50 my-3"></div>
+            
+            <ul class="font-mono text-[#FF5A00] text-sm text-center space-y-2 opacity-90">
+                <li class="bg-[#FF5A00]/10 px-2 py-1">Employee of All Time</li>
+                <li class="bg-[#FF5A00]/10 px-2 py-1">God of Stories</li>
+                <li class="bg-[#FF5A00]/10 px-2 py-1">God of Mischief</li>
+            </ul>
+        </div>
+
+        <!-- Right Column: Feats -->
+        <div class="w-full md:w-2/3 font-mono text-[#FF5A00]">
+            <div class="flex items-center gap-3 mb-6">
+                <span class="animate-pulse w-3 h-3 bg-[#FF5A00] rounded-full"></span>
+                <h4 class="text-xl md:text-2xl tracking-widest border-b border-[#FF5A00] w-full pb-1">KNOWN FEATS</h4>
+            </div>
+            
+            <ul class="space-y-6 text-sm md:text-base leading-relaxed opacity-90">
+                <li class="relative pl-6 before:content-['>'] before:absolute before:left-0 before:text-[#FF5A00]">
+                    <strong class="text-white">Stabilized Yggdrasil:</strong> Currently holding the multiversal branches together at the End of Time, preventing the total collapse of reality following the Temporal Loom's failure.
+                </li>
+                <li class="relative pl-6 before:content-['>'] before:absolute before:left-0 before:text-[#FF5A00]">
+                    <strong class="text-white">Survived the Void:</strong> Successfully navigated the End of Time, enchanting and overpowering the trans-temporal entity Alioth.
+                </li>
+                <li class="relative pl-6 before:content-['>'] before:absolute before:left-0 before:text-[#FF5A00]">
+                    <strong class="text-white">Infiltrated the TVA:</strong> Bypassed temporal logic locks and rewrote his own timeline, ascending beyond the confines of He Who Remains' script.
+                </li>
+                <li class="relative pl-6 before:content-['>'] before:absolute before:left-0 before:text-[#FF5A00]">
+                    <strong class="text-white">D.B. Cooper Incident (1971):</strong> Successfully hijacked Northwest Orient Airlines Flight 305 on a lost bet to Thor. Escaped mid-air via Bifrost intervention.
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================================= -->
+<!-- VARIANT SKELETON MODAL (ORANGE POPUP)                     -->
+<!-- ========================================================= -->
+<div id="modal-variant" class="fixed inset-0 z-[11000] hidden items-center justify-center bg-[#0a0603]/90 backdrop-blur-md p-4">
+    <div class="relative w-full max-w-4xl bg-[#0f0702] border-2 border-[#FF5A00] p-6 md:p-10 shadow-[0_0_30px_rgba(255,90,0,0.2)] scale-90 opacity-0 flex flex-col md:flex-row gap-8" id="content-variant">
+        
+        <button class="close-dossier absolute top-4 right-4 text-[#FF5A00] hover:text-white font-mono text-xl z-20 transition-colors">[X]</button>
+
+        <!-- Left Column: Skeleton Photo Area -->
+        <div class="w-full md:w-1/3 flex flex-col items-center border-r-0 md:border-r-2 border-[#FF5A00]/30 pr-0 md:pr-8">
+            <div class="w-full aspect-[3/4] bg-[#1a0f05] border border-[#FF5A00]/50 mb-4 flex items-center justify-center relative overflow-hidden">
+                <div class="absolute inset-0 opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjRkY1QTAwIiBmaWxsLW9wYWNpdHk9IjAuMSIvPgo8L3N2Zz4=')]"></div>
+                <!-- Scanning Radar / Pulse -->
+                <div class="w-[150%] h-[10px] bg-[#FF5A00]/40 shadow-[0_0_20px_#FF5A00] absolute top-0 animate-[scan_2s_linear_infinite]"></div>
+                
+                <span class="text-[#FF5A00] font-mono text-6xl opacity-30">?</span>
+            </div>
+            
+            <h3 class="font-mono text-[#FF5A00] text-2xl uppercase tracking-tighter text-center mt-2 font-bold animate-pulse">> PENDING</h3>
+            <div class="w-full border-t border-[#FF5A00]/50 my-3"></div>
+            
+            <ul class="font-mono text-[#FF5A00] text-sm text-center space-y-2 opacity-70">
+                <li class="bg-[#FF5A00]/10 px-2 py-1">He Who Remains</li>
+                <li class="bg-[#FF5A00]/10 px-2 py-1">Master Architect</li>
+                <li class="bg-[#FF5A00]/10 px-2 py-1">2026 GFG Champion</li>
+            </ul>
+        </div>
+
+        <!-- Right Column: Skeleton Feats -->
+        <div class="w-full md:w-2/3 font-mono text-[#FF5A00]">
+            <div class="flex items-center justify-between border-b border-[#FF5A00] pb-1 mb-6">
+                <div class="flex items-center gap-3">
+                    <span class="animate-ping w-3 h-3 bg-[#FF5A00] rounded-full"></span>
+                    <h4 class="text-xl md:text-2xl tracking-widest">SEARCHING TIMELINE...</h4>
+                </div>
+                <span class="text-xs opacity-50">ERROR: DATA NOT FOUND</span>
+            </div>
+            
+            <!-- Skeleton Loading Lines -->
+            <div class="space-y-6">
+                <div>
+                    <div class="h-4 bg-[#FF5A00]/20 w-3/4 mb-2 animate-pulse"></div>
+                    <div class="h-4 bg-[#FF5A00]/10 w-full mb-2 animate-pulse"></div>
+                    <div class="h-4 bg-[#FF5A00]/10 w-5/6 animate-pulse"></div>
+                </div>
+                <div>
+                    <div class="h-4 bg-[#FF5A00]/20 w-1/2 mb-2 animate-pulse"></div>
+                    <div class="h-4 bg-[#FF5A00]/10 w-full mb-2 animate-pulse"></div>
+                </div>
+                <div>
+                    <div class="h-4 bg-[#FF5A00]/20 w-2/3 mb-2 animate-pulse"></div>
+                    <div class="h-4 bg-[#FF5A00]/10 w-4/5 animate-pulse"></div>
+                </div>
+            </div>
+
+            <div class="mt-12 p-4 border border-red-500/50 bg-red-900/20 text-red-400 text-sm text-center">
+                > WARNING: CRITICAL VACANCY DETECTED. REQUIRED ELITE VARIANT TO FILL ROLE AND PREVENT MULTIVERSAL COLLAPSE.
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- ========================================================= -->
+<!-- TEMPAD INTERACTIVE DATA LOG (HIDDEN BY DEFAULT)           -->
+<!-- ========================================================= -->
+<div id="tempad-modal" class="fixed inset-0 z-[10000] hidden items-center justify-center bg-[#0a0603]/80 backdrop-blur-md p-4">
+    <div class="relative w-full max-w-lg bg-[#0f0702] border-2 border-[#FF5A00] p-6 md:p-8 tva-box-glow scale-90 opacity-0" id="tempad-content">
+        
+        <!-- TemPad Header -->
+        <div class="absolute top-0 left-0 w-full bg-[#FF5A00] text-[#0a0603] text-xs font-mono px-3 py-1 font-bold flex justify-between items-center">
+            <span class="animate-pulse">> TEMPAD_DATA_LOG_ACTIVE</span>
+            <button id="close-tempad" class="hover:text-white transition-colors cursor-pointer">[X] CLOSE</button>
+        </div>
+        
+        <!-- CRT Screen Glitch purely for the modal -->
+        <div class="absolute inset-0 pointer-events-none opacity-10 scanlines"></div>
+        
+        <!-- Dynamic Content Injected via JS -->
+        <div class="mt-6 font-mono text-[#FF5A00]">
+            <p class="text-sm opacity-70 tracking-widest border-b border-[#FF5A00]/30 pb-2 mb-4" id="tempad-time">NEXUS: 000 // TIME</p>
+            <h3 class="text-3xl md:text-4xl uppercase tracking-tighter mb-4" id="tempad-title" style="font-family: 'VT323', monospace;">EVENT_TITLE</h3>
+            <p class="text-sm md:text-base leading-relaxed opacity-90 border-l-2 border-[#FF5A00] pl-4" id="tempad-desc">Detailed log goes here...</p>
+        </div>
+        
+        <!-- Modal Terminal Brackets -->
+        <div class="absolute -bottom-2 -right-2 w-4 h-4 border-b-2 border-r-2 border-[#FF5A00]"></div>
+        <div class="absolute -top-2 -left-2 w-4 h-4 border-t-2 border-l-2 border-[#FF5A00] mt-[32px]"></div>
+    </div>
+</div>
+
+<!-- 2. GSAP & SCROLLTRIGGER CDNS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/TextPlugin.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollToPlugin.min.js"></script>
+    <!-- 3. YOUR CUSTOM SCRIPT -->
+    <script src="script.js"></script>
+</body>
+</html>
