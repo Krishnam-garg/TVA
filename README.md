@@ -1,4 +1,4 @@
-# ⏳ TVA Hackathon Portal: "He Who Remains" Registration System
+# ⏳ TVA Hackathon Registration System
 
 ![UI Theme](https://img.shields.io/badge/UI_Theme-Brutalist_Retro--Analog-FF5A00?style=for-the-badge)
 ![Animation](https://img.shields.io/badge/Animation-GSAP_ScrollTrigger-4AF626?style=for-the-badge)
